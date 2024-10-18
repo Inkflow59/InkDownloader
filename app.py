@@ -1,19 +1,24 @@
-from pytube import YouTube
+from pytubefix import YouTube
+# from pytubefix.cli import on_progress  # Commenté si non nécessaire
 
-def download_video(link):
+def telecharger_video(url, chemin_de_sortie):
     try:
         # Créer un objet YouTube
-        youtube_object = YouTube(link)
+        yt = YouTube(url)  # Enlever on_progress_callback si non nécessaire
         
-        # Obtenir le flux de la plus haute résolution
-        video_stream = youtube_object.streams.get_highest_resolution()
+        # Afficher le titre de la vidéo
+        print(f"Téléchargement de : {yt.title}")
+        
+        # Sélectionner le flux de la plus haute résolution
+        video = yt.streams.get_highest_resolution()
         
         # Télécharger la vidéo
-        video_stream.download()
-        print("Téléchargement terminé avec succès!")
+        video.download(output_path=chemin_de_sortie)
+        print("Vidéo téléchargée avec succès !")
     except Exception as e:
-        print(f"Une erreur s'est produite: {e}")
+        print(f"Une erreur s'est produite : {e}")
 
-if __name__ == "__main__":
-    link = input("Entrez l'URL de la vidéo YouTube: ")
-    download_video(link)
+# Exemple d'utilisation
+url_video = input("Entrez l'URL de la vidéo YouTube : ")
+chemin_de_sortie = "E:/"  # Remplacez par votre chemin de sortie
+telecharger_video(url_video, chemin_de_sortie)
