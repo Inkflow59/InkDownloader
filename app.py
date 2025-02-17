@@ -1,29 +1,139 @@
-import yt_dlp
-import re
-import os
-from pathlib import Path
-import tkinter as tk
-from tkinter import ttk, messagebox
-from tkinter import scrolledtext
-import threading
-import subprocess
-import requests
-import json
-import sys
-from packaging import version
-import tempfile
+# Importation des bibliothèques nécessaires
+import yt_dlp  # Pour télécharger les vidéos YouTube
+import re  # Pour les expressions régulières
+import os  # Pour les opérations sur les fichiers et dossiers
+from pathlib import Path  # Pour la gestion des chemins de fichiers
+import tkinter as tk  # Pour l'interface graphique
+from tkinter import ttk, messagebox  # Pour les widgets et boîtes de dialogue
+from tkinter import scrolledtext  # Pour la zone de texte défilante
+import threading  # Pour l'exécution parallèle
+import subprocess  # Pour exécuter des commandes système
+import requests  # Pour les requêtes HTTP
+import json  # Pour le traitement JSON
+import sys  # Pour les opérations système
+from packaging import version  # Pour la comparaison des versions
+import tempfile  # Pour les fichiers temporaires
+import zipfile  # Pour la gestion des fichiers ZIP
+import shutil  # Pour les opérations de fichiers avancées
 
+# Configuration de l'application
 VERSION = "1.0.1"
-GITHUB_REPO = "Inkflow59/InkDownloader"  # Repo GitHub correct
+GITHUB_REPO = "Inkflow59/InkDownloader"  # Dépôt GitHub pour les mises à jour
+
+def download_and_install_ffmpeg():
+    """Télécharge et installe FFmpeg automatiquement sur le système"""
+    try:
+        # Création d'un dossier temporaire
+        temp_dir = tempfile.mkdtemp()
+        ffmpeg_zip = os.path.join(temp_dir, "ffmpeg.zip")
+        
+        # URL de téléchargement de FFmpeg
+        ffmpeg_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+        
+        # Téléchargement de FFmpeg avec barre de progression
+        response = requests.get(ffmpeg_url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+        
+        # Création de la fenêtre de progression
+        progress_window = tk.Toplevel()
+        progress_window.title("Installation de FFmpeg")
+        progress_window.geometry("300x150")
+        
+        label = ttk.Label(progress_window, text="Téléchargement de FFmpeg en cours...")
+        label.pack(pady=10)
+        
+        progress_var = tk.DoubleVar()
+        progress = ttk.Progressbar(progress_window, variable=progress_var, maximum=100)
+        progress.pack(fill='x', padx=10, pady=10)
+        
+        status_label = ttk.Label(progress_window, text="0%")
+        status_label.pack()
+
+        # Téléchargement avec barre de progression
+        with open(ffmpeg_zip, 'wb') as f:
+            downloaded = 0
+            for data in response.iter_content(chunk_size=4096):
+                downloaded += len(data)
+                f.write(data)
+                progress = (downloaded / total_size) * 100
+                progress_var.set(progress)
+                status_label.config(text=f"{progress:.1f}%")
+                progress_window.update()
+
+        label.config(text="Extraction des fichiers...")
+        progress_window.update()
+
+        # Extraction du zip
+        with zipfile.ZipFile(ffmpeg_zip, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+        
+        # Trouver le dossier bin dans le dossier extrait
+        ffmpeg_folder = None
+        for root, dirs, files in os.walk(temp_dir):
+            if 'bin' in dirs:
+                ffmpeg_folder = os.path.join(root, 'bin')
+                break
+        
+        if not ffmpeg_folder:
+            raise Exception("Dossier bin introuvable dans l'archive FFmpeg")
+
+        # Copier les fichiers .exe dans System32
+        system32_path = os.path.join(os.environ['SystemRoot'], 'System32')
+        for file in os.listdir(ffmpeg_folder):
+            if file.endswith('.exe'):
+                src = os.path.join(ffmpeg_folder, file)
+                dst = os.path.join(system32_path, file)
+                try:
+                    shutil.copy2(src, dst)
+                except PermissionError:
+                    # Si pas de droits admin, copier dans le dossier de l'application
+                    app_dir = os.path.dirname(os.path.abspath(__file__))
+                    dst = os.path.join(app_dir, file)
+                    shutil.copy2(src, dst)
+                    # Ajouter le dossier au PATH
+                    if app_dir not in os.environ['PATH']:
+                        os.environ['PATH'] += os.pathsep + app_dir
+
+        progress_window.destroy()
+        return True
+        
+    except Exception as e:
+        if 'progress_window' in locals():
+            progress_window.destroy()
+        messagebox.showerror("Erreur", f"Erreur lors de l'installation de FFmpeg : {str(e)}")
+        return False
+    finally:
+        # Nettoyage
+        if 'temp_dir' in locals():
+            try:
+                shutil.rmtree(temp_dir)
+            except:
+                pass
 
 def check_ffmpeg():
+    """Vérifie si FFmpeg est installé et accessible sur le système"""
     try:
         subprocess.run(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return True
     except FileNotFoundError:
         return False
 
+def ensure_ffmpeg():
+    """Vérifie la présence de FFmpeg et propose son installation si nécessaire"""
+    if not check_ffmpeg():
+        reponse = messagebox.askyesno(
+            "FFmpeg requis",
+            "FFmpeg n'est pas installé sur votre système. Voulez-vous que je le télécharge et l'installe automatiquement ?"
+        )
+        if reponse:
+            return download_and_install_ffmpeg()
+        else:
+            show_ffmpeg_instructions()
+            return False
+    return True
+
 def show_ffmpeg_instructions():
+    """Affiche un guide d'installation manuelle de FFmpeg à l'utilisateur"""
     message = """FFmpeg n'est pas installé sur votre système.
 
 Pour installer FFmpeg :
@@ -42,19 +152,21 @@ Redémarrez l'application après l'installation."""
     messagebox.showerror("FFmpeg requis", message)
 
 class YTDownloaderGUI:
+    """Interface graphique principale de l'application de téléchargement YouTube"""
     def __init__(self, root):
+        """Initialise l'interface graphique et configure les composants principaux"""
         self.root = root
         
-        # Vérification de FFmpeg
-        if not check_ffmpeg():
-            show_ffmpeg_instructions()
+        # Vérification de FFmpeg au démarrage
+        if not ensure_ffmpeg():
             root.destroy()
             return
 
+        # Configuration de la fenêtre principale
         self.root.title("InkDownloader")
         self.root.geometry("700x500")
         
-        # Configuration du style moderne
+        # Configuration du style de l'interface
         style = ttk.Style()
         style.theme_use('clam')
         style.configure('TButton', padding=6, relief="flat", background="#2196F3")
@@ -119,10 +231,12 @@ class YTDownloaderGUI:
         self.check_for_updates()  # Moved here from the start of __init__
 
     def log(self, message):
+        """Ajoute un message dans la zone de journal de l'application"""
         self.log_area.insert(tk.END, message + '\n')
         self.log_area.see(tk.END)
 
     def update_progress(self, d):
+        """Met à jour la barre de progression et l'affichage du pourcentage pendant le téléchargement"""
         if d['status'] == 'downloading':
             try:
                 progress = float(d['_percent_str'].replace('%', ''))
@@ -134,6 +248,7 @@ class YTDownloaderGUI:
         self.log(f"Téléchargement : {d.get('_percent_str', '?')} terminé")
 
     def start_download(self):
+        """Lance le téléchargement dans un thread séparé pour éviter de bloquer l'interface"""
         url = self.url_entry.get().strip()
         if not url:
             self.log("Veuillez entrer une URL")
@@ -143,16 +258,17 @@ class YTDownloaderGUI:
         threading.Thread(target=self.download_video, args=(url,), daemon=True).start()
 
     def get_format_string(self):
+        """Détermine le format de sortie en fonction des options sélectionnées par l'utilisateur"""
         quality = self.quality_var.get().split()[0].replace('p', '')  # Extrait "1080" de "1080p"
         format_choice = self.format_var.get()
         
         if format_choice in ['mp3', 'm4a']:
             return 'bestaudio/best'
         else:
-            # Sélectionner le meilleur format compatible avec le lecteur Windows
             return f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]'
 
     def download_video(self, url):
+        """Gère le processus complet de téléchargement d'une vidéo YouTube"""
         try:
             if not verifier_url(url):
                 raise ValueError("URL YouTube invalide")
@@ -222,6 +338,7 @@ class YTDownloaderGUI:
             self.progress_label.configure(text="0%")
 
     def check_for_updates(self):
+        """Vérifie si une nouvelle version de l'application est disponible sur GitHub"""
         try:
             self.log("Vérification des mises à jour...")
             response = requests.get(f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest")
@@ -240,6 +357,7 @@ class YTDownloaderGUI:
             self.log(f"Erreur lors de la vérification des mises à jour : {e}")
 
     def download_update(self, url):
+        """Télécharge et installe la dernière version de l'application"""
         try:
             self.log("Téléchargement de la mise à jour...")
             download_path = os.path.join(tempfile.gettempdir(), "InkDownloader_update.exe")
@@ -295,9 +413,11 @@ class YTDownloaderGUI:
             messagebox.showerror("Erreur", f"Erreur lors du téléchargement de la mise à jour : {e}")
 
 def verifier_url(url):
+    """Valide si l'URL fournie est une URL YouTube valide"""
     youtube_regex = r'(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/'
     return bool(re.match(youtube_regex, url))
 
+# Point d'entrée de l'application
 if __name__ == "__main__":
     root = tk.Tk()
     app = YTDownloaderGUI(root)
