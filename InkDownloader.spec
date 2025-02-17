@@ -36,9 +36,15 @@ exe = EXE(
     runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='resources/icon.ico'
+    icon='resources/icon.ico',
+    # Ajout des métadonnées de l'application
+    version='file_version_info.txt',
+    file_description='InkDownloader - A YouTube Video Downloader',
+    company_name='InkFlow59',
+    product_name='InkDownloader',
+    copyright='MIT License',
+    trademarks='InkDownloader'
 )

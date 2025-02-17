@@ -18,7 +18,7 @@ import shutil  # Pour les opérations de fichiers avancées
 from translations import TRANSLATIONS  # Pour les traductions
 
 # Configuration de l'application
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 GITHUB_REPO = "Inkflow59/InkDownloader"  # Dépôt GitHub pour les mises à jour
 
 def download_and_install_ffmpeg():
@@ -101,7 +101,10 @@ def download_and_install_ffmpeg():
     except Exception as e:
         if 'progress_window' in locals():
             progress_window.destroy()
-        messagebox.showerror(self.get_text('error_title'), self.get_text('ffmpeg_install_error', str(e)))
+        current_language = getattr(root, 'current_language', tk.StringVar(value='fr')).get()
+        error_title = "Error" if current_language == 'en' else "Erreur"
+        error_message = f"FFmpeg installation failed: {str(e)}"
+        messagebox.showerror(error_title, error_message)
         return False
     finally:
         # Nettoyage
@@ -405,6 +408,10 @@ class YTDownloaderGUI:
                         self.download_update(response.json()["assets"][0]["browser_download_url"])
                 else:
                     self.log(self.get_text('using_latest'))
+                
+                # Afficher la version actuelle après la vérification
+                self.log(f"Version actuelle : {VERSION}")
+                
         except Exception as e:
             self.log(self.get_text('update_error', str(e)))
 
