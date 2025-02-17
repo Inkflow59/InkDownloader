@@ -15,9 +15,10 @@ from packaging import version  # Pour la comparaison des versions
 import tempfile  # Pour les fichiers temporaires
 import zipfile  # Pour la gestion des fichiers ZIP
 import shutil  # Pour les opérations de fichiers avancées
+from translations import TRANSLATIONS  # Pour les traductions
 
 # Configuration de l'application
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 GITHUB_REPO = "Inkflow59/InkDownloader"  # Dépôt GitHub pour les mises à jour
 
 def download_and_install_ffmpeg():
@@ -100,7 +101,7 @@ def download_and_install_ffmpeg():
     except Exception as e:
         if 'progress_window' in locals():
             progress_window.destroy()
-        messagebox.showerror("Erreur", f"Erreur lors de l'installation de FFmpeg : {str(e)}")
+        messagebox.showerror(self.get_text('error_title'), self.get_text('ffmpeg_install_error', str(e)))
         return False
     finally:
         # Nettoyage
@@ -121,10 +122,10 @@ def check_ffmpeg():
 def ensure_ffmpeg():
     """Vérifie la présence de FFmpeg et propose son installation si nécessaire"""
     if not check_ffmpeg():
-        reponse = messagebox.askyesno(
-            "FFmpeg requis",
-            "FFmpeg n'est pas installé sur votre système. Voulez-vous que je le télécharge et l'installe automatiquement ?"
-        )
+        current_language = getattr(root, 'current_language', tk.StringVar(value='fr')).get()
+        title = "FFmpeg " + ("required" if current_language == 'en' else "requis")
+        message = TRANSLATIONS[current_language]['ffmpeg_required']
+        reponse = messagebox.askyesno(title, message)
         if reponse:
             return download_and_install_ffmpeg()
         else:
@@ -134,7 +135,7 @@ def ensure_ffmpeg():
 
 def show_ffmpeg_instructions():
     """Affiche un guide d'installation manuelle de FFmpeg à l'utilisateur"""
-    message = """FFmpeg n'est pas installé sur votre système.
+    message_fr = """FFmpeg n'est pas installé sur votre système.
 
 Pour installer FFmpeg :
 
@@ -148,14 +149,32 @@ Ou utilisez un gestionnaire de paquets :
 - Avec Scoop : scoop install ffmpeg
 
 Redémarrez l'application après l'installation."""
-    
-    messagebox.showerror("FFmpeg requis", message)
+
+    message_en = """FFmpeg is not installed on your system.
+
+To install FFmpeg:
+
+1. Go to: https://github.com/BtbN/FFmpeg-Builds/releases
+2. Download the latest version (ffmpeg-master-latest-win64-gpl.zip)
+3. Extract the zip file
+4. Copy the .exe files from the bin folder to C:\\Windows\\System32
+
+Or use a package manager:
+- With Chocolatey: choco install ffmpeg
+- With Scoop: scoop install ffmpeg
+
+Restart the application after installation."""
+
+    current_language = getattr(root, 'current_language', tk.StringVar(value='fr')).get()
+    message = message_en if current_language == 'en' else message_fr
+    messagebox.showerror("FFmpeg " + ("required" if current_language == 'en' else "requis"), message)
 
 class YTDownloaderGUI:
     """Interface graphique principale de l'application de téléchargement YouTube"""
     def __init__(self, root):
         """Initialise l'interface graphique et configure les composants principaux"""
         self.root = root
+        self.current_language = tk.StringVar(value='fr')  # Default to French
         
         # Vérification de FFmpeg au démarrage
         if not ensure_ffmpeg():
@@ -163,7 +182,7 @@ class YTDownloaderGUI:
             return
 
         # Configuration de la fenêtre principale
-        self.root.title("InkDownloader")
+        self.root.title(self.get_text('window_title'))
         self.root.geometry("700x500")
         
         # Configuration du style de l'interface
@@ -177,12 +196,23 @@ class YTDownloaderGUI:
         main_frame = ttk.Frame(root, padding="10", style='TFrame')
         main_frame.pack(fill='both', expand=True)
 
+        # Language Selection Frame
+        lang_frame = ttk.Frame(main_frame, style='Custom.TFrame')
+        lang_frame.pack(fill='x', pady=(0, 10))
+        
+        ttk.Label(lang_frame, text=self.get_text('choose_language')).pack(side='left', padx=5)
+        lang_combo = ttk.Combobox(lang_frame, textvariable=self.current_language, 
+                                values=['fr', 'en'], state='readonly', width=10)
+        lang_combo.pack(side='left', padx=5)
+        lang_combo.bind('<<ComboboxSelected>>', self.on_language_change)
+
         # URL Input Frame
         url_frame = ttk.Frame(main_frame, style='Custom.TFrame')
         url_frame.pack(fill='x', pady=(0, 10))
         url_frame.columnconfigure(1, weight=1)
         
-        ttk.Label(url_frame, text="URL YouTube :", font=('Helvetica', 10)).grid(row=0, column=0, padx=5, pady=10)
+        self.url_label = ttk.Label(url_frame, text=self.get_text('url_label'), font=('Helvetica', 10))
+        self.url_label.grid(row=0, column=0, padx=5, pady=10)
         self.url_entry = ttk.Entry(url_frame, font=('Helvetica', 10))
         self.url_entry.grid(row=0, column=1, padx=5, pady=10, sticky='ew')
 
@@ -193,13 +223,17 @@ class YTDownloaderGUI:
         options_frame.columnconfigure(3, weight=1)
 
         # Format Selection
-        ttk.Label(options_frame, text="Format :", font=('Helvetica', 10)).grid(row=0, column=0, padx=5, pady=10)
+        self.format_label = ttk.Label(options_frame, text=self.get_text('format_label'), font=('Helvetica', 10))
+        self.format_label.grid(row=0, column=0, padx=5, pady=10)
         self.format_var = tk.StringVar(value="mp4")
-        self.format_combo = ttk.Combobox(options_frame, textvariable=self.format_var, values=["mp4", "mkv", "webm", "mp3", "m4a"], state="readonly", width=15)
+        self.format_combo = ttk.Combobox(options_frame, textvariable=self.format_var, 
+                                       values=["mp4", "mkv", "webm", "mp3", "m4a"], 
+                                       state="readonly", width=15)
         self.format_combo.grid(row=0, column=1, padx=5, pady=10, sticky='w')
 
         # Quality Selection
-        ttk.Label(options_frame, text="Qualité :", font=('Helvetica', 10)).grid(row=0, column=2, padx=5, pady=10)
+        self.quality_label = ttk.Label(options_frame, text=self.get_text('quality_label'), font=('Helvetica', 10))
+        self.quality_label.grid(row=0, column=2, padx=5, pady=10)
         self.quality_var = tk.StringVar(value="1080p")
         self.quality_combo = ttk.Combobox(options_frame, textvariable=self.quality_var, 
                                         values=["2160p (4K)", "1440p (2K)", "1080p", "720p", "480p", "360p"], 
@@ -207,7 +241,8 @@ class YTDownloaderGUI:
         self.quality_combo.grid(row=0, column=3, padx=5, pady=10, sticky='w')
 
         # Download Button
-        self.download_button = ttk.Button(options_frame, text="Télécharger", command=self.start_download, style='TButton')
+        self.download_button = ttk.Button(options_frame, text=self.get_text('download_button'), 
+                                        command=self.start_download, style='TButton')
         self.download_button.grid(row=0, column=4, padx=10, pady=10)
 
         # Progress Bar with percentage label
@@ -223,12 +258,29 @@ class YTDownloaderGUI:
         log_frame = ttk.Frame(main_frame, style='Custom.TFrame')
         log_frame.pack(fill='both', expand=True)
         
-        ttk.Label(log_frame, text="Journal :", font=('Helvetica', 10)).pack(anchor='w', padx=5, pady=(5,0))
+        self.log_label = ttk.Label(log_frame, text=self.get_text('log_label'), font=('Helvetica', 10))
+        self.log_label.pack(anchor='w', padx=5, pady=(5,0))
         self.log_area = scrolledtext.ScrolledText(log_frame, height=15, font=('Consolas', 9))
         self.log_area.pack(fill='both', expand=True, padx=5, pady=5)
 
         # Check for updates after GUI is initialized
         self.check_for_updates()  # Moved here from the start of __init__
+
+    def get_text(self, key, *args):
+        """Get translated text for the current language"""
+        text = TRANSLATIONS[self.current_language.get()][key]
+        if args:
+            return text.format(*args)
+        return text
+
+    def on_language_change(self, event):
+        """Update UI text when language changes"""
+        self.root.title(self.get_text('window_title'))
+        self.url_label.config(text=self.get_text('url_label'))
+        self.format_label.config(text=self.get_text('format_label'))
+        self.quality_label.config(text=self.get_text('quality_label'))
+        self.download_button.config(text=self.get_text('download_button'))
+        self.log_label.config(text=self.get_text('log_label'))
 
     def log(self, message):
         """Ajoute un message dans la zone de journal de l'application"""
@@ -271,11 +323,11 @@ class YTDownloaderGUI:
         """Gère le processus complet de téléchargement d'une vidéo YouTube"""
         try:
             if not verifier_url(url):
-                raise ValueError("URL YouTube invalide")
+                raise ValueError(self.get_text('invalid_url'))
 
             if not check_ffmpeg():
-                self.log("❌ FFmpeg n'est pas installé!")
-                self.log("Le téléchargement nécessite FFmpeg pour combiner l'audio et la vidéo.")
+                self.log(self.get_text('ffmpeg_not_installed'))
+                self.log(self.get_text('ffmpeg_needed'))
                 show_ffmpeg_instructions()
                 return
 
@@ -285,7 +337,7 @@ class YTDownloaderGUI:
 
             format_choice = self.format_var.get()
             
-            self.log("Configuration du téléchargement...")
+            self.log(self.get_text('download_config'))
             ydl_opts = {
                 'format': self.get_format_string(),
                 'outtmpl': os.path.join(videos_path, '%(title)s.%(ext)s'),
@@ -311,26 +363,25 @@ class YTDownloaderGUI:
                     ]
                 })
 
-            self.log("Connexion à YouTube...")
+            self.log(self.get_text('connecting'))
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                self.log("Récupération des informations...")
+                self.log(self.get_text('getting_info'))
                 info = ydl.extract_info(url, download=False)
-                self.log(f"Titre de la vidéo : {info['title']}")
-                self.log(f"Format choisi : {format_choice}")
-                self.log(f"Qualité demandée : {self.quality_var.get()}")
-                self.log(f"Destination : {videos_path}")
+                self.log(self.get_text('video_title', info['title']))
+                self.log(self.get_text('format_chosen', format_choice))
+                self.log(self.get_text('quality_chosen', self.quality_var.get()))
+                self.log(self.get_text('destination', videos_path))
                 
-                self.log("Démarrage du téléchargement...")
+                self.log(self.get_text('starting_download'))
                 ydl.download([url])
-                self.log("✅ Téléchargement terminé avec succès!")
+                self.log(self.get_text('download_success'))
 
         except Exception as e:
-            self.log(f"❌ Une erreur s'est produite : {str(e)}")
-            self.log("\nConseils de dépannage :")
-            self.log("1. Vérifiez que l'URL est correcte et accessible")
-            self.log("2. Vérifiez votre connexion internet")
-            self.log("3. Installez ou mettez à jour yt-dlp :")
-            self.log("   pip install --upgrade yt-dlp")
+            self.log(self.get_text('error_occurred', str(e)))
+            self.log(self.get_text('troubleshooting'))
+            self.log(self.get_text('check_url'))
+            self.log(self.get_text('check_internet'))
+            self.log(self.get_text('update_ytdlp'))
 
         finally:
             self.download_button.configure(state='normal')
@@ -340,21 +391,22 @@ class YTDownloaderGUI:
     def check_for_updates(self):
         """Vérifie si une nouvelle version de l'application est disponible sur GitHub"""
         try:
-            self.log("Vérification des mises à jour...")
+            self.log(self.get_text('checking_updates'))
             response = requests.get(f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest")
             if response.status_code == 200:
                 latest_version = version.parse(response.json()["tag_name"].lstrip('v'))
                 current_version = version.parse(VERSION)
                 
                 if latest_version > current_version:
-                    self.log(f"Nouvelle version disponible : {latest_version}")
-                    if messagebox.askyesno("Mise à jour disponible", 
-                        f"Une nouvelle version ({latest_version}) est disponible. Voulez-vous la télécharger ?"):
+                    self.log(self.get_text('new_version', latest_version))
+                    if messagebox.askyesno(
+                        self.get_text('update_available', latest_version),
+                        self.get_text('update_available', latest_version)):
                         self.download_update(response.json()["assets"][0]["browser_download_url"])
                 else:
-                    self.log("Vous utilisez la dernière version disponible.")
+                    self.log(self.get_text('using_latest'))
         except Exception as e:
-            self.log(f"Erreur lors de la vérification des mises à jour : {e}")
+            self.log(self.get_text('update_error', str(e)))
 
     def download_update(self, url):
         """Télécharge et installe la dernière version de l'application"""
@@ -401,16 +453,17 @@ class YTDownloaderGUI:
             update_window.destroy()
             self.log("Mise à jour téléchargée avec succès!")
             
-            if messagebox.askyesno("Mise à jour téléchargée", 
-                "La mise à jour a été téléchargée. L'application va redémarrer pour appliquer les changements. Continuer ?"):
-                self.log("Redémarrage de l'application...")
+            if messagebox.askyesno(
+                self.get_text('update_downloaded_title'), 
+                self.get_text('restart_prompt')):
+                self.log(self.get_text('restarting'))
                 subprocess.Popen([download_path])
                 self.root.quit()  # Ferme proprement l'application
                 sys.exit()
                 
         except Exception as e:
-            self.log(f"Erreur lors du téléchargement de la mise à jour : {e}")
-            messagebox.showerror("Erreur", f"Erreur lors du téléchargement de la mise à jour : {e}")
+            self.log(self.get_text('update_error', str(e)))
+            messagebox.showerror(self.get_text('error_title'), self.get_text('update_error', str(e)))
 
 def verifier_url(url):
     """Valide si l'URL fournie est une URL YouTube valide"""

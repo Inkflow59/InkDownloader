@@ -1,114 +1,114 @@
 # InkDownloader
 
-Un outil simple et intuitif pour télécharger des vidéos YouTube et extraire l'audio avec une interface graphique conviviale.
+A simple and intuitive tool for downloading YouTube videos and extracting audio with a user-friendly graphical interface.
 
-![Interface InkDownloader](screenshots/interface.png)
+![InkDownloader Interface](screenshots/interface.png)
 
-## ⚡ Installation Rapide (Windows)
+## ⚡ Quick Installation (Windows)
 
-1. Téléchargez la dernière version de `InkDownloader.exe` depuis la section [Releases](https://github.com/tomcdev63/InkDownloader/releases)
-2. Double-cliquez sur l'exécutable pour lancer l'application
-3. C'est tout ! Aucune installation supplémentaire n'est requise
+1. Download the latest version of `InkDownloader.exe` from the [Releases](https://github.com/tomcdev63/InkDownloader/releases) section
+2. Double-click the executable to launch the application
+3. That's it! No additional installation required
 
-## ✨ Fonctionnalités Principales
+## ✨ Key Features
 
-- 🎥 Téléchargement de vidéos YouTube en qualité jusqu'à 4K
-- 🎵 Extraction audio en MP3 ou M4A
-- 📊 Barre de progression en temps réel
-- 🔄 Téléchargements simultanés
-- 📝 Journal détaillé des téléchargements
-- 💾 Organisation automatique des fichiers
-- 🎯 Interface intuitive en français
+- 🎥 Download YouTube videos in quality up to 4K
+- 🎵 Extract audio in MP3 or M4A format
+- 📊 Real-time progress bar
+- 🔄 Simultaneous downloads
+- 📝 Detailed download logs
+- 💾 Automatic file organization
+- 🎯 Intuitive interface in English and French
 
-## 📥 Guide d'Utilisation
+## 📥 User Guide
 
-1. **Démarrage**
-   - Lancez InkDownloader
-   - Collez l'URL YouTube dans le champ prévu
+1. **Getting Started**
+   - Launch InkDownloader
+   - Paste the YouTube URL in the provided field
 
 2. **Configuration**
-   - **Format de sortie** : Choisissez entre
-     - Vidéo : MP4, MKV, WEBM
-     - Audio : MP3, M4A
-   - **Qualité** : Sélectionnez la résolution souhaitée (jusqu'à 4K si disponible)
-   - **Dossier de destination** : Par défaut dans "Vidéos", modifiable dans les paramètres
+   - **Output Format**: Choose between
+     - Video: MP4, MKV, WEBM
+     - Audio: MP3, M4A
+   - **Quality**: Select desired resolution (up to 4K if available)
+   - **Destination folder**: Default is "Videos", can be modified in settings
 
-3. **Téléchargement**
-   - Cliquez sur "Télécharger"
-   - Suivez la progression en temps réel
-   - Une notification apparaît une fois le téléchargement terminé
+3. **Download**
+   - Click "Download"
+   - Track progress in real-time
+   - A notification appears when download is complete
 
-## 🛠️ Installation depuis les Sources
+## 🛠️ Installation from Source
 
-### Prérequis
+### Prerequisites
 - Python 3.7+
 - FFmpeg
-- Git (optionnel)
+- Git (optional)
 
-### Étapes d'Installation
+### Installation Steps
 
-1. **Clonez ou téléchargez le dépôt** :
+1. **Clone or download the repository**:
    ```bash
    git clone https://github.com/tomcdev63/InkDownloader.git
    cd InkDownloader
    ```
 
-2. **Installez les dépendances Python** :
+2. **Install Python dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Installez FFmpeg** :
-   - Via **Chocolatey** : `choco install ffmpeg`
-   - Via **Scoop** : `scoop install ffmpeg`
-   - Ou téléchargez manuellement depuis [FFmpeg Builds](https://github.com/BtbN/FFmpeg-Builds/releases)
+3. **Install FFmpeg**:
+   - Via **Chocolatey**: `choco install ffmpeg`
+   - Via **Scoop**: `scoop install ffmpeg`
+   - Or download manually from [FFmpeg Builds](https://github.com/BtbN/FFmpeg-Builds/releases)
 
-4. **Lancez l'application** :
+4. **Launch the application**:
    ```bash
    python app.py
    ```
 
-## ⚠️ Résolution des Problèmes
+## ⚠️ Troubleshooting
 
-### Erreurs Courantes
+### Common Issues
 
-1. **Message "FFmpeg non trouvé"**
-   - Vérifiez que FFmpeg est installé
-   - Ajoutez FFmpeg aux variables d'environnement PATH
-   - Redémarrez l'application
+1. **"FFmpeg not found" Message**
+   - Verify FFmpeg is installed
+   - Add FFmpeg to PATH environment variables
+   - Restart the application
 
-2. **Échec du téléchargement**
-   - Vérifiez votre connexion Internet
-   - Assurez-vous que la vidéo est disponible
-   - Mettez à jour yt-dlp : `pip install --upgrade yt-dlp`
+2. **Download Failure**
+   - Check your Internet connection
+   - Make sure the video is available
+   - Update yt-dlp: `pip install --upgrade yt-dlp`
 
-3. **Format non disponible**
-   - Certaines vidéos peuvent avoir des restrictions de qualité
-   - Essayez un format ou une qualité différente
+3. **Format Not Available**
+   - Some videos may have quality restrictions
+   - Try a different format or quality
 
-### Mise à Jour
+### Updates
 
-Pour maintenir l'application à jour :
-- Téléchargez la dernière version depuis les releases
-- Si vous utilisez les sources : `pip install --upgrade yt-dlp`
+To keep the application up to date:
+- Download the latest version from releases
+- If using source: `pip install --upgrade yt-dlp`
 
-## 📝 Notes Importantes
+## 📝 Important Notes
 
-- Les téléchargements sont légaux uniquement pour un usage personnel
-- Respectez les droits d'auteur et les conditions d'utilisation de YouTube
-- L'application nécessite une connexion Internet
+- Downloads are legal for personal use only
+- Respect YouTube's copyright and terms of service
+- Application requires an Internet connection
 
-## 📄 Licence
+## 📄 License
 
-Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+This project is distributed under the MIT license. See the [LICENSE](LICENSE) file for more details.
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-Les contributions sont les bienvenues ! N'hésitez pas à :
-- Signaler des bugs
-- Proposer des améliorations
-- Soumettre des pull requests
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest improvements
+- Submit pull requests
 
 ---
 
-Développé avec ❤️ pour la communauté française
+Developed with ❤️ for the community
