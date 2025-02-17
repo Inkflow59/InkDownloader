@@ -13,7 +13,7 @@ import sys
 from packaging import version
 import tempfile
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 GITHUB_REPO = "Inkflow59/InkDownloader"  # Repo GitHub correct
 
 def check_ffmpeg():
@@ -44,7 +44,6 @@ Redémarrez l'application après l'installation."""
 class YTDownloaderGUI:
     def __init__(self, root):
         self.root = root
-        self.check_for_updates()  # Vérifie les mises à jour directement au démarrage
         
         # Vérification de FFmpeg
         if not check_ffmpeg():
@@ -115,6 +114,9 @@ class YTDownloaderGUI:
         ttk.Label(log_frame, text="Journal :", font=('Helvetica', 10)).pack(anchor='w', padx=5, pady=(5,0))
         self.log_area = scrolledtext.ScrolledText(log_frame, height=15, font=('Consolas', 9))
         self.log_area.pack(fill='both', expand=True, padx=5, pady=5)
+
+        # Check for updates after GUI is initialized
+        self.check_for_updates()  # Moved here from the start of __init__
 
     def log(self, message):
         self.log_area.insert(tk.END, message + '\n')
