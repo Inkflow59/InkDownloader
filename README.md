@@ -1,77 +1,114 @@
 # InkDownloader
 
-Un outil simple et intuitif pour télécharger des vidéos YouTube avec une interface graphique conviviale.
+Un outil simple et intuitif pour télécharger des vidéos YouTube et extraire l'audio avec une interface graphique conviviale.
 
-## Fonctionnalités
+![Interface InkDownloader](screenshots/interface.png)
 
-- 🎥 Téléchargement de vidéos YouTube en haute qualité
-- 🎵 Support de l'extraction audio (MP3, M4A)
+## ⚡ Installation Rapide (Windows)
+
+1. Téléchargez la dernière version de `InkDownloader.exe` depuis la section [Releases](https://github.com/tomcdev63/InkDownloader/releases)
+2. Double-cliquez sur l'exécutable pour lancer l'application
+3. C'est tout ! Aucune installation supplémentaire n'est requise
+
+## ✨ Fonctionnalités Principales
+
+- 🎥 Téléchargement de vidéos YouTube en qualité jusqu'à 4K
+- 🎵 Extraction audio en MP3 ou M4A
 - 📊 Barre de progression en temps réel
-- 🎯 Sélection de la qualité vidéo (jusqu'à 4K)
-- 📝 Journal de téléchargement détaillé
-- 💾 Sauvegarde automatique dans le dossier Vidéos
+- 🔄 Téléchargements simultanés
+- 📝 Journal détaillé des téléchargements
+- 💾 Organisation automatique des fichiers
+- 🎯 Interface intuitive en français
 
-## Prérequis
+## 📥 Guide d'Utilisation
 
-- Python 3.7 ou supérieur
-- FFmpeg (requis pour le traitement audio/vidéo)
+1. **Démarrage**
+   - Lancez InkDownloader
+   - Collez l'URL YouTube dans le champ prévu
 
-## Installation
+2. **Configuration**
+   - **Format de sortie** : Choisissez entre
+     - Vidéo : MP4, MKV, WEBM
+     - Audio : MP3, M4A
+   - **Qualité** : Sélectionnez la résolution souhaitée (jusqu'à 4K si disponible)
+   - **Dossier de destination** : Par défaut dans "Vidéos", modifiable dans les paramètres
 
-1. Clonez le dépôt :
-```bash
-git clone https://github.com/votre-username/InkDownloader.git
-cd InkDownloader
-```
+3. **Téléchargement**
+   - Cliquez sur "Télécharger"
+   - Suivez la progression en temps réel
+   - Une notification apparaît une fois le téléchargement terminé
 
-2. Installez les dépendances :
-```bash
-pip install -r requirements.txt
-```
+## 🛠️ Installation depuis les Sources
 
-3. Installez FFmpeg (requis) :
-   - Windows : 
-     - Téléchargez depuis [FFmpeg Builds](https://github.com/BtbN/FFmpeg-Builds/releases)
-     - Ou utilisez Chocolatey : `choco install ffmpeg`
-     - Ou utilisez Scoop : `scoop install ffmpeg`
+### Prérequis
+- Python 3.7+
+- FFmpeg
+- Git (optionnel)
 
-## Utilisation
+### Étapes d'Installation
 
-1. Lancez l'application :
-```bash
-python app.py
-```
+1. **Clonez ou téléchargez le dépôt** :
+   ```bash
+   git clone https://github.com/tomcdev63/InkDownloader.git
+   cd InkDownloader
+   ```
 
-2. Collez l'URL YouTube dans le champ prévu
+2. **Installez les dépendances Python** :
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-3. Sélectionnez :
-   - Le format de sortie (MP4, MKV, WEBM, MP3, M4A)
-   - La qualité souhaitée (jusqu'à 4K selon la disponibilité)
+3. **Installez FFmpeg** :
+   - Via **Chocolatey** : `choco install ffmpeg`
+   - Via **Scoop** : `scoop install ffmpeg`
+   - Ou téléchargez manuellement depuis [FFmpeg Builds](https://github.com/BtbN/FFmpeg-Builds/releases)
 
-4. Cliquez sur "Télécharger"
+4. **Lancez l'application** :
+   ```bash
+   python app.py
+   ```
 
-Les fichiers seront automatiquement sauvegardés dans votre dossier "Vidéos".
+## ⚠️ Résolution des Problèmes
 
-## Support des formats
+### Erreurs Courantes
 
-### Formats vidéo
-- MP4
-- MKV
-- WEBM
+1. **Message "FFmpeg non trouvé"**
+   - Vérifiez que FFmpeg est installé
+   - Ajoutez FFmpeg aux variables d'environnement PATH
+   - Redémarrez l'application
 
-### Formats audio
-- MP3
-- M4A
+2. **Échec du téléchargement**
+   - Vérifiez votre connexion Internet
+   - Assurez-vous que la vidéo est disponible
+   - Mettez à jour yt-dlp : `pip install --upgrade yt-dlp`
 
-## Résolution des problèmes
+3. **Format non disponible**
+   - Certaines vidéos peuvent avoir des restrictions de qualité
+   - Essayez un format ou une qualité différente
 
-Si vous rencontrez des erreurs :
+### Mise à Jour
 
-1. Vérifiez que FFmpeg est correctement installé
-2. Assurez-vous que l'URL est valide
-3. Vérifiez votre connexion internet
-4. Mettez à jour yt-dlp : `pip install --upgrade yt-dlp`
+Pour maintenir l'application à jour :
+- Téléchargez la dernière version depuis les releases
+- Si vous utilisez les sources : `pip install --upgrade yt-dlp`
 
-## Licence
+## 📝 Notes Importantes
 
-Ce projet est sous licence MIT.
+- Les téléchargements sont légaux uniquement pour un usage personnel
+- Respectez les droits d'auteur et les conditions d'utilisation de YouTube
+- L'application nécessite une connexion Internet
+
+## 📄 Licence
+
+Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à :
+- Signaler des bugs
+- Proposer des améliorations
+- Soumettre des pull requests
+
+---
+
+Développé avec ❤️ pour la communauté française

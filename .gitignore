@@ -4,6 +4,22 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+.installed.cfg
+*.egg
+MANIFEST
 .env
 .venv
 env/
@@ -11,16 +27,28 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.python-version
 
 # Distribution / packaging
-dist/
-build/
-*.egg-info/
-*.egg
-
-# PyInstaller
 *.manifest
 *.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
 # IDE specific files
 .idea/
@@ -28,6 +56,20 @@ build/
 *.swp
 *.swo
 .DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Project specific
 *.log
+.env.local
+.env.*.local
+logs/
+output/
+temp/
+downloads/
+
+# Keep PyInstaller spec file
+!InkDownloader.spec

@@ -14,7 +14,7 @@ from packaging import version
 import tempfile
 
 VERSION = "1.0.0"
-GITHUB_REPO = "votre-username/YTDownloader"  # À remplacer par votre repo GitHub
+GITHUB_REPO = "Inkflow59/InkDownloader"  # Repo GitHub correct
 
 def check_ffmpeg():
     try:
@@ -44,9 +44,7 @@ Redémarrez l'application après l'installation."""
 class YTDownloaderGUI:
     def __init__(self, root):
         self.root = root
-        
-        # Vérification des mises à jour au démarrage
-        threading.Thread(target=self.check_for_updates, daemon=True).start()
+        self.check_for_updates()  # Vérifie les mises à jour directement au démarrage
         
         # Vérification de FFmpeg
         if not check_ffmpeg():
@@ -223,52 +221,75 @@ class YTDownloaderGUI:
 
     def check_for_updates(self):
         try:
+            self.log("Vérification des mises à jour...")
             response = requests.get(f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest")
             if response.status_code == 200:
                 latest_version = version.parse(response.json()["tag_name"].lstrip('v'))
                 current_version = version.parse(VERSION)
                 
                 if latest_version > current_version:
+                    self.log(f"Nouvelle version disponible : {latest_version}")
                     if messagebox.askyesno("Mise à jour disponible", 
                         f"Une nouvelle version ({latest_version}) est disponible. Voulez-vous la télécharger ?"):
                         self.download_update(response.json()["assets"][0]["browser_download_url"])
+                else:
+                    self.log("Vous utilisez la dernière version disponible.")
         except Exception as e:
-            print(f"Erreur lors de la vérification des mises à jour : {e}")
+            self.log(f"Erreur lors de la vérification des mises à jour : {e}")
 
     def download_update(self, url):
         try:
+            self.log("Téléchargement de la mise à jour...")
             download_path = os.path.join(tempfile.gettempdir(), "InkDownloader_update.exe")
-            response = requests.get(url, stream=True)
-            total_size = int(response.headers.get('content-length', 0))
             
+            # Création d'une fenêtre de progression
             update_window = tk.Toplevel(self.root)
             update_window.title("Téléchargement de la mise à jour")
             update_window.geometry("300x150")
+            update_window.transient(self.root)  # Rend la fenêtre modale
             
-            label = ttk.Label(update_window, text="Téléchargement en cours...")
+            progress_frame = ttk.Frame(update_window)
+            progress_frame.pack(fill='both', expand=True, padx=10, pady=10)
+            
+            label = ttk.Label(progress_frame, text="Téléchargement de la mise à jour en cours...")
             label.pack(pady=10)
             
             progress_var = tk.DoubleVar()
-            progress = ttk.Progressbar(update_window, variable=progress_var, maximum=100)
-            progress.pack(fill='x', padx=10, pady=10)
+            progress = ttk.Progressbar(progress_frame, variable=progress_var, maximum=100)
+            progress.pack(fill='x', pady=10)
             
+            status_label = ttk.Label(progress_frame, text="0%")
+            status_label.pack()
+
+            # Téléchargement avec progression
+            response = requests.get(url, stream=True)
+            total_size = int(response.headers.get('content-length', 0))
             block_size = 1024
-            progress_var.set(0)
-            
+            downloaded = 0
+
             with open(download_path, 'wb') as f:
                 for data in response.iter_content(block_size):
+                    downloaded += len(data)
                     f.write(data)
-                    progress_var.set(os.path.getsize(download_path) / total_size * 100)
-                    update_window.update()
-            
+                    
+                    if total_size:
+                        percent = (downloaded / total_size) * 100
+                        progress_var.set(percent)
+                        status_label.config(text=f"{percent:.1f}%")
+                        update_window.update()
+
             update_window.destroy()
+            self.log("Mise à jour téléchargée avec succès!")
             
             if messagebox.askyesno("Mise à jour téléchargée", 
-                "La mise à jour a été téléchargée. L'application va redémarrer. Continuer ?"):
+                "La mise à jour a été téléchargée. L'application va redémarrer pour appliquer les changements. Continuer ?"):
+                self.log("Redémarrage de l'application...")
                 subprocess.Popen([download_path])
+                self.root.quit()  # Ferme proprement l'application
                 sys.exit()
                 
         except Exception as e:
+            self.log(f"Erreur lors du téléchargement de la mise à jour : {e}")
             messagebox.showerror("Erreur", f"Erreur lors du téléchargement de la mise à jour : {e}")
 
 def verifier_url(url):
