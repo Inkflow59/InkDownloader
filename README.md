@@ -4,7 +4,7 @@ A simple and intuitive tool for downloading YouTube videos and extracting audio 
 
 ## ⚡ Quick Installation (Windows)
 
-1. Download the latest version of `InkDownloader.exe` from the [Releases](https://github.com/tomcdev63/InkDownloader/releases) section
+1. Download the latest version of `InkDownloader.exe` from the [Releases](https://github.com/Inkflow59/InkDownloader/releases) section
 2. Double-click the executable to launch the application
 3. That's it! No additional installation required
 
