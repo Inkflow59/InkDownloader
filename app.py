@@ -24,23 +24,20 @@ GITHUB_REPO = "Inkflow59/InkDownloader"  # GitHub repository for updates
 def download_and_install_ffmpeg():
     """Downloads and installs FFmpeg automatically on the system"""
     try:
-        # Create temporary directory
         temp_dir = tempfile.mkdtemp()
         ffmpeg_zip = os.path.join(temp_dir, "ffmpeg.zip")
         
-        # FFmpeg download URL
         ffmpeg_url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
         
-        # Download FFmpeg with progress bar
         response = requests.get(ffmpeg_url, stream=True)
         total_size = int(response.headers.get('content-length', 0))
         
-        # Create progress window
         progress_window = tk.Toplevel()
-        progress_window.title("FFmpeg Installation")
+        current_language = getattr(root, 'current_language', tk.StringVar(value='fr')).get()
+        progress_window.title(TRANSLATIONS[current_language]['ffmpeg_install_window'])
         progress_window.geometry("300x150")
         
-        label = ttk.Label(progress_window, text="Downloading FFmpeg...")
+        label = ttk.Label(progress_window, text=TRANSLATIONS[current_language]['ffmpeg_downloading'])
         label.pack(pady=10)
         
         progress_var = tk.DoubleVar()
@@ -61,7 +58,7 @@ def download_and_install_ffmpeg():
                 status_label.config(text=f"{progress:.1f}%")
                 progress_window.update()
 
-        label.config(text="Extracting files...")
+        label.config(text=TRANSLATIONS[current_language]['ffmpeg_extracting'])
         progress_window.update()
 
         # Extract zip
@@ -76,7 +73,7 @@ def download_and_install_ffmpeg():
                 break
         
         if not ffmpeg_folder:
-            raise Exception("bin folder not found in FFmpeg archive")
+            raise Exception(TRANSLATIONS[current_language]['bin_folder_error'])
 
         # Copy .exe files to System32
         system32_path = os.path.join(os.environ['SystemRoot'], 'System32')
@@ -102,8 +99,8 @@ def download_and_install_ffmpeg():
         if 'progress_window' in locals():
             progress_window.destroy()
         current_language = getattr(root, 'current_language', tk.StringVar(value='fr')).get()
-        error_title = "Error" if current_language == 'en' else "Erreur"
-        error_message = f"FFmpeg installation failed: {str(e)}"
+        error_title = TRANSLATIONS[current_language]['error_title']
+        error_message = TRANSLATIONS[current_language]['ffmpeg_install_failed'].format(str(e))
         messagebox.showerror(error_title, error_message)
         return False
     finally:
@@ -234,19 +231,24 @@ class YTDownloaderGUI:
                                        state="readonly", width=15)
         self.format_combo.grid(row=0, column=1, padx=5, pady=10, sticky='w')
 
+        # Playlist Checkbox
+        self.playlist_var = tk.BooleanVar(value=False)
+        self.playlist_check = ttk.Checkbutton(options_frame, text="Playlist", variable=self.playlist_var)
+        self.playlist_check.grid(row=0, column=2, padx=5, pady=10)
+
         # Quality Selection
         self.quality_label = ttk.Label(options_frame, text=self.get_text('quality_label'), font=('Helvetica', 10))
-        self.quality_label.grid(row=0, column=2, padx=5, pady=10)
+        self.quality_label.grid(row=0, column=3, padx=5, pady=10)
         self.quality_var = tk.StringVar(value="1080p")
         self.quality_combo = ttk.Combobox(options_frame, textvariable=self.quality_var, 
                                         values=["2160p (4K)", "1440p (2K)", "1080p", "720p", "480p", "360p"], 
                                         state="readonly", width=15)
-        self.quality_combo.grid(row=0, column=3, padx=5, pady=10, sticky='w')
+        self.quality_combo.grid(row=0, column=4, padx=5, pady=10, sticky='w')
 
         # Download Button
         self.download_button = ttk.Button(options_frame, text=self.get_text('download_button'), 
                                         command=self.start_download, style='TButton')
-        self.download_button.grid(row=0, column=4, padx=10, pady=10)
+        self.download_button.grid(row=0, column=5, padx=10, pady=10)
 
         # Progress Bar with percentage label
         progress_frame = ttk.Frame(main_frame)
@@ -323,7 +325,7 @@ class YTDownloaderGUI:
             return f'bestvideo[height<={quality}]+bestaudio/best[height<={quality}]'
 
     def download_video(self, url):
-        """Manages the complete process of downloading a YouTube video"""
+        """Manages the complete process of downloading a YouTube video or playlist"""
         try:
             if not validate_url(url):
                 raise ValueError(self.get_text('invalid_url'))
@@ -339,13 +341,18 @@ class YTDownloaderGUI:
                 os.makedirs(videos_path)
 
             format_choice = self.format_var.get()
+            is_playlist = self.playlist_var.get()
             
             self.log(self.get_text('download_config'))
+
+            # Configuration de base pour yt-dlp
             ydl_opts = {
                 'format': self.get_format_string(),
-                'outtmpl': os.path.join(videos_path, '%(title)s.%(ext)s'),
+                'outtmpl': os.path.join(videos_path, '%(playlist_title)s/%(title)s.%(ext)s' if is_playlist else '%(title)s.%(ext)s'),
                 'progress_hooks': [self.update_progress],
-                'ffmpeg_location': None,  # Utilise FFmpeg du système
+                'ffmpeg_location': None,
+                'ignoreerrors': True,  # Continue en cas d'erreur dans une playlist
+                'extract_flat': False,  # Extraction complète pour les playlists
             }
 
             # Configuration spécifique pour l'audio
@@ -358,11 +365,10 @@ class YTDownloaderGUI:
                     }], 
                 })
             else:
-                # Pour la vidéo, on utilise simplement le remuxage sans conversion
                 ydl_opts.update({
                     'merge_output_format': 'mp4',
                     'postprocessor_args': [
-                        '-c', 'copy',  # Copier les streams sans réencodage
+                        '-c', 'copy',
                     ]
                 })
 
@@ -370,7 +376,15 @@ class YTDownloaderGUI:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 self.log(self.get_text('getting_info'))
                 info = ydl.extract_info(url, download=False)
-                self.log(self.get_text('video_title', info['title']))
+                
+                if is_playlist and 'entries' in info:
+                    playlist_title = info.get('title', 'Playlist')
+                    video_count = len(info['entries'])
+                    self.log(self.get_text('playlist_found', playlist_title))
+                    self.log(self.get_text('video_count', video_count))
+                else:
+                    self.log(self.get_text('video_title', info['title']))
+                
                 self.log(self.get_text('format_chosen', format_choice))
                 self.log(self.get_text('quality_chosen', self.quality_var.get()))
                 self.log(self.get_text('destination', videos_path))
@@ -410,7 +424,7 @@ class YTDownloaderGUI:
                     self.log(self.get_text('using_latest'))
                 
                 # Afficher la version actuelle après la vérification
-                self.log(f"Version actuelle : {VERSION}")
+                self.log(self.get_text('current_version', VERSION))
                 
         except Exception as e:
             self.log(self.get_text('update_error', str(e)))
@@ -418,12 +432,12 @@ class YTDownloaderGUI:
     def download_update(self, url):
         """Downloads and installs the latest version of the application"""
         try:
-            self.log("Téléchargement de la mise à jour...")
+            self.log(self.get_text('update_downloading'))
             download_path = os.path.join(tempfile.gettempdir(), "InkDownloader_update.exe")
             
             # Création d'une fenêtre de progression
             update_window = tk.Toplevel(self.root)
-            update_window.title("Téléchargement de la mise à jour")
+            update_window.title(self.get_text('update_downloaded_title'))
             update_window.geometry("300x150")
             update_window.transient(self.root)  # Rend la fenêtre modale
             

@@ -42,7 +42,13 @@ TRANSLATIONS = {
         'enter_url': "Veuillez entrer une URL",
         'download_percent': "Téléchargement : {} terminé",
         'update_downloaded_title': "Mise à jour téléchargée",
-        'update_downloading': "Téléchargement de la mise à jour en cours..."
+        'update_downloading': "Téléchargement de la mise à jour en cours...",
+        'ffmpeg_install_window': "Installation de FFmpeg",
+        'bin_folder_error': "Dossier bin introuvable dans l'archive FFmpeg",
+        'ffmpeg_install_failed': "L'installation de FFmpeg a échoué : {}",
+        'playlist_found': "Playlist trouvée : {}",
+        'video_count': "Nombre de vidéos : {}",
+        'current_version': "Version actuelle : {}"
     },
     'en': {
         'window_title': "InkDownloader",
@@ -87,6 +93,12 @@ TRANSLATIONS = {
         'enter_url': "Please enter a URL",
         'download_percent': "Download: {} complete",
         'update_downloaded_title': "Update Downloaded",
-        'update_downloading': "Downloading update..."
+        'update_downloading': "Downloading update...",
+        'ffmpeg_install_window': "FFmpeg Installation",
+        'bin_folder_error': "bin folder not found in FFmpeg archive",
+        'ffmpeg_install_failed': "FFmpeg installation failed: {}",
+        'playlist_found': "Playlist found: {}",
+        'video_count': "Number of videos: {}",
+        'current_version': "Current version: {}"
     }
 }
