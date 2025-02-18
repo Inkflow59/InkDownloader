@@ -70,6 +70,3 @@ logs/
 output/
 temp/
 downloads/
-
-# Keep PyInstaller spec file
-!InkDownloader.spec
