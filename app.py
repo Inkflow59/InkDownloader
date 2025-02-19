@@ -20,7 +20,7 @@ from PIL import Image, ImageTk  # For image handling
 import webbrowser  # For opening URLs
 
 # Application configuration
-VERSION = "1.1.1"
+VERSION = "2.0.0"
 GITHUB_REPO = "Inkflow59/InkDownloader"  # GitHub repository for updates
 
 def download_and_install_ffmpeg():

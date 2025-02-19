@@ -17,6 +17,12 @@ A simple and intuitive tool for downloading YouTube videos and extracting audio 
 - 📝 Detailed download logs
 - 💾 Automatic file organization
 - 🎯 Intuitive interface in English and French
+- 📥 Automatic FFmpeg installation
+- 🔄 Automatic updates
+- 🎨 Modern UI with improved design
+- 🚀 Enhanced error handling
+- 🌍 Better localization support
+- 🛠️ Advanced playlist support
 
 ## 📥 User Guide
 
